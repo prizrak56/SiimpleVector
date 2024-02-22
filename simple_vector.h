@@ -1,6 +1,7 @@
 #pragma once
 #include "array_ptr.h"
 #include <initializer_list>
+#include <cassert>
 #include <stdexcept>
 
 template <typename Type>
@@ -12,16 +13,16 @@ public:
     SimpleVector() noexcept = default;
 
     // Создаёт вектор из size элементов, инициализированных значением по умолчанию
-    explicit SimpleVector(size_t size) : SimpleVector(size,Type()){
+    explicit SimpleVector(size_t size) : SimpleVector(size, Type()) {
     }
 
     // Создаёт вектор из size элементов, инициализированных значением value
-    SimpleVector(size_t size, const Type& value) : value_(size), size_(size),capacite_(size) {
+    SimpleVector(size_t size, const Type& value) : value_(size), size_(size), capacite_(size) {
         std::fill(value_.Get_begin(), value_.Get_begin() + size, value);
     }
 
     // Создаёт вектор из std::initializer_list
-    SimpleVector(std::initializer_list<Type> init) : value_(init.size()),size_(init.size()),capacite_(init.size()) {
+    SimpleVector(std::initializer_list<Type> init) : value_(init.size()), size_(init.size()), capacite_(init.size()) {
         std::copy(init.begin(), init.end(), value_.Get_begin());
     }
 
@@ -88,9 +89,9 @@ public:
         }
         if (new_size > capacite_) {
             size_t tmp_c = std::max(new_size, capacite_ * 2);
-            ArrPtr <Type> tmp_a (tmp_c);
+            ArrPtr <Type> tmp_a(tmp_c);
             std::fill(value_.Get_begin(), value_.Get_begin() + tmp_c, Type());
-            std::copy(value_.Get_begin(), value_.Get_begin() + tmp_c, tmp_a);
+            std::copy(value_.Get_begin(), value_.Get_begin() + tmp_c, tmp_a.Get_begin());
             value_.swap(tmp_a);
             capacite_ = new_size;
             size_ = new_size;
@@ -124,16 +125,16 @@ public:
     // Возвращает константный итератор на начало массива
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator cbegin() const noexcept {
-        return begin();
+        return value_.Get_begin();
     }
 
     // Возвращает итератор на элемент, следующий за последним
     // Для пустого массива может быть равен (или не равен) nullptr
     ConstIterator cend() const noexcept {
-        return end();
+        return value_.Get_begin() + size_;
     }
-    private:
-        ArrPtr<Type> value_;
-        size_t size_ = 0;
-        size_t capacite_ = 0;
+private:
+    ArrPtr<Type> value_;
+    size_t size_ = 0;
+    size_t capacite_ = 0;
 };

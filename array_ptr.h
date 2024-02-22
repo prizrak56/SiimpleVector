@@ -14,7 +14,7 @@ public:
 			raw_ptr_ = nullptr;
 		}
 		else {
-			raw_ptr_ = new Type [size];
+			raw_ptr_ = new Type[size];
 		}
 	}
 	explicit ArrPtr(Type* raw_ptr) noexcept : raw_ptr_(raw_ptr) {}
@@ -44,7 +44,11 @@ public:
 		return &raw_ptr_[0];
 	}
 
-	void swap(ArrPtr &other) noexcept {
+	Type* Get_begin() const noexcept {
+		return &raw_ptr_[0];
+	}
+
+	void swap(ArrPtr& other) noexcept {
 		std::swap(other.raw_ptr_, raw_ptr_);
 	}
 
