@@ -51,7 +51,7 @@ public:
         std::copy(init.begin(), init.end(), value_.Get_begin());
     }
 
-    SimpleVector(SimpleVector&& other) : value_(other.capacity_) {
+    SimpleVector(SimpleVector&& other) : value_(other.capacite_) {
         swap(other);
     }
 
@@ -205,9 +205,21 @@ public:
         return *this;
     }
 
-    // Добавляет элемент в конец вектора
-    // При нехватке места увеличивает вдвое вместимость вектора
     void PushBack(const Type& item) {
+        if (size_ + 1 > capacite_) {
+            size_t tmp_c = std::max(size_ + 1, capacite_ * 2);
+            ArrPtr<Type> tmp(tmp_c);
+            std::fill(tmp.Get_begin(), tmp.Get_begin() + tmp_c, Type());
+            std::copy(value_.Get_begin(), value_.Get_begin() + size_, tmp.Get_begin());
+            value_.swap(tmp);
+            capacite_ = tmp_c;
+        }
+        value_[size_] = item;
+        ++size_;
+
+    }
+
+    void PushBack(Type&& item) {
         if (size_ + 1 > capacite_) {
             size_t tmp_c = std::max(size_ + 1, capacite_ * 2);
             ArrPtr<Type> tmp(tmp_c);
@@ -220,10 +232,8 @@ public:
 
     }
 
-    // Вставляет значение value в позицию pos.
-    // Возвращает итератор на вставленное значение
-    // Если перед вставкой значения вектор был заполнен полностью,
-    // вместимость вектора должна увеличиться вдвое, а для вектора вместимостью 0 стать равной 1
+   
+
     Iterator Insert(ConstIterator pos, const Type& value) {
         size_t quantity = pos - value_.Get_begin();
         if (capacite_ == 0) {
@@ -231,23 +241,81 @@ public:
             tmp[quantity] = value;
             value_.swap(tmp);
             ++capacite_;
+            ++size_;
         }
         else if (size_ < capacite_) {
-            std::move_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_, value_.Get_begin() + size_ + 1);
-            value_[quantity] = std::move(value);
+            std::copy_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_, value_.Get_begin() + size_ + 1);
+            value_[quantity] = value;
+            ++size_;
         }
         else {
             size_t tmp_c = std::max(size_ + 1, capacite_ * 2);
             ArrPtr<Type> tmp(tmp_c);
-            std::move(value_.Get_begin(), value_.Get_begin() + size_, tmp.Get_begin());
-            std::move_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_, tmp.Get_begin() + size_ + 1);
-            tmp[quantity] = std::move(value);
+            std::copy(value_.Get_begin(), value_.Get_begin() + size_, tmp.Get_begin());
+            std::copy_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_, tmp.Get_begin() + size_ + 1);
+            tmp[quantity] = value;
             value_.swap(tmp);
             capacite_ = tmp_c;
+            ++size_;
         }
-        ++size_;
         return &value_[quantity];
     }
+
+    //Iterator Insert(ConstIterator pos, Type&& value) {
+    //    size_t quantity = pos - value_.Get_begin();
+    //    if (capacite_ == 0) {
+    //        ArrPtr<Type>tmp(1);
+    //        tmp[quantity] = value;
+    //        value_.swap(tmp);
+    //        ++capacite_;
+    //    }
+    //    else if (size_ < capacite_) {
+    //        std::move_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_, value_.Get_begin() + size_ + 1);
+    //        value_[quantity] = std::move(value);
+    //    }
+    //    else {
+    //        size_t tmp_c = std::max(size_ + 1, capacite_ * 2);
+    //        ArrPtr<Type> tmp(tmp_c);
+    //        std::move(value_.Get_begin(), value_.Get_begin() + size_, tmp.Get_begin());
+    //        std::move_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_, tmp.Get_begin() + size_ + 1);
+    //        tmp[quantity] = std::move(value);
+    //        value_.swap(tmp);
+    //        capacite_ = tmp_c;
+    //    }
+    //    ++size_;
+    //    return &value_[quantity];
+    //}
+
+    Iterator Insert(Iterator pos, Type&& value) {
+
+        size_t quantity = pos - value_.Get_begin();
+        if (capacite_ == 0) {
+            ArrPtr<Type> tmp(1);
+            tmp[quantity] = std::move(value);
+            value_.swap(tmp);
+            ++capacite_;
+        }
+        else if (size_ < capacite_) {
+            std::move_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_,
+                value_.Get_begin() + size_ + 1);
+            value_[quantity] = std::move(value);
+        }
+        else {
+            size_t new_capacite = std::max(size_ + 1, capacite_ * 2);
+            ArrPtr<Type> tmp(capacite_);
+            std::move(value_.Get_begin(), value_.Get_begin() + size_,
+                tmp.Get_begin());
+            std::move_backward(value_.Get_begin() + quantity, value_.Get_begin() + size_,
+                tmp.Get_begin() + size_ + 1);
+            tmp[quantity] = std::move(value);
+            value_.swap(tmp);
+            capacite_ = new_capacite;
+        }
+        ++size_;
+        
+        return &value_[quantity];
+    }
+
 
 
     // "Удаляет" последний элемент вектора. Вектор не должен быть пустым
