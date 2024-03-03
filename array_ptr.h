@@ -40,9 +40,9 @@ public:
 		}
 	}
 
-	Type* Get_begin() noexcept {
-		return &raw_ptr_[0];
-	}
+	//Type* Get_begin() noexcept {
+	//	return &raw_ptr_[0];
+	//}
 
 	Type* Get_begin() const noexcept {
 		return &raw_ptr_[0];
